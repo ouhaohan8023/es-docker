@@ -1,0 +1,126 @@
+version: '3'
+services:
+  es01:
+    image: elasticsearch:6.8.11
+    container_name: es01
+    environment:
+      - cluster.name=es-cluster
+      - node.name=es01
+      - discovery.zen.ping.unicast.hosts=192.168.3.1,192.168.3.2,192.168.3.3,192.168.3.4
+      - discovery.zen.minimum_master_nodes=1
+      - node.master=true
+      - node.data=false
+      - gateway.recover_after_nodes=1
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "ELASTIC_PASSWORD=Abcd_1234@!" # 设置密码
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:                                  # 数据卷挂载路径设置,将本机目录映射到容器目录
+      - "./es01/data:/usr/share/elasticsearch/data"
+      - "./es01/logs:/usr/share/elasticsearch/logs"
+      - "./es01/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml"
+      - "./es01/config/certs:/usr/share/elasticsearch/config/certs"
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      esnet:
+        ipv4_address: 192.168.3.1
+
+  es02:
+    image: elasticsearch:6.8.11
+    container_name: es02
+    environment:
+      - cluster.name=es-cluster
+      - node.name=es02
+      - discovery.zen.ping.unicast.hosts=192.168.3.1,192.168.3.2,192.168.3.3,192.168.3.4
+      - discovery.zen.minimum_master_nodes=1
+      - node.master=false
+      - node.data=true
+      - gateway.recover_after_nodes=1
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "ELASTIC_PASSWORD=Abcd_1234@!" # 设置密码
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - "./es02/data:/usr/share/elasticsearch/data"
+      - "./es02/logs:/usr/share/elasticsearch/logs"
+      - "./es02/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml"
+      - "./es02/config/certs:/usr/share/elasticsearch/config/certs"
+    ports:
+      - 9201:9200
+      - 9301:9300
+    networks:
+      esnet:
+        ipv4_address: 192.168.3.2
+
+  es03:
+    image: elasticsearch:6.8.11
+    container_name: es03
+    environment:
+      - cluster.name=es-cluster
+      - node.name=es03
+      - discovery.zen.ping.unicast.hosts=192.168.3.1,192.168.3.2,192.168.3.3,192.168.3.4
+      - discovery.zen.minimum_master_nodes=1
+      - node.master=false
+      - node.data=true
+      - gateway.recover_after_nodes=1
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "ELASTIC_PASSWORD=Abcd_1234@!" # 设置密码
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - "./es03/data:/usr/share/elasticsearch/data"
+      - "./es03/logs:/usr/share/elasticsearch/logs"
+      - "./es03/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml"
+      - "./es03/config/certs:/usr/share/elasticsearch/config/certs"
+    ports:
+      - 9202:9200
+      - 9302:9300
+    networks:
+      esnet:
+        ipv4_address: 192.168.3.3
+
+#   es04:
+#     image: elasticsearch:6.8.11
+#     container_name: es04
+#     environment:
+#       - cluster.name=es-cluster
+#       - node.name=es04
+#       - discovery.zen.ping.unicast.hosts=192.168.3.1,192.168.3.2,192.168.3.3,192.168.3.4
+#       - discovery.zen.minimum_master_nodes=1
+#       - node.master=false
+#       - node.data=true
+#       - gateway.recover_after_nodes=1
+#       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+#       - "xpack.security.enabled=false"   # 开启xpack安全认证
+#       - "ELASTIC_PASSWORD=Abcd_1234@!" # 设置密码
+#     ulimits:
+#       memlock:
+#         soft: -1
+#         hard: -1
+#     volumes:
+#       - "./es04/data:/usr/share/elasticsearch/data"
+#       - "./es04/logs:/usr/share/elasticsearch/logs"
+#       - "./es04/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml"
+#     ports:
+#       - 9203:9200
+#       - 9303:9300
+#     networks:
+#       esnet:
+#         ipv4_address: 192.168.3.4
+
+networks:
+  esnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.3.0/24
+          gateway: 192.168.3.10
