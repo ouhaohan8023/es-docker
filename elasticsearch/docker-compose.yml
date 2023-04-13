@@ -12,7 +12,7 @@ services:
       - node.data=false
       - gateway.recover_after_nodes=1
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-      - "ELASTIC_PASSWORD=Abcd_1234@!" # 设置密码
+      - "ELASTIC_PASSWORD=PASSWORD" # 设置密码
     ulimits:
       memlock:
         soft: -1
@@ -41,7 +41,7 @@ services:
       - node.data=true
       - gateway.recover_after_nodes=1
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-      - "ELASTIC_PASSWORD=Abcd_1234@!" # 设置密码
+      - "ELASTIC_PASSWORD=PASSWORD" # 设置密码
     ulimits:
       memlock:
         soft: -1
@@ -70,7 +70,7 @@ services:
       - node.data=true
       - gateway.recover_after_nodes=1
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-      - "ELASTIC_PASSWORD=Abcd_1234@!" # 设置密码
+      - "ELASTIC_PASSWORD=PASSWORD" # 设置密码
     ulimits:
       memlock:
         soft: -1
@@ -100,7 +100,7 @@ services:
 #       - gateway.recover_after_nodes=1
 #       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
 #       - "xpack.security.enabled=false"   # 开启xpack安全认证
-#       - "ELASTIC_PASSWORD=Abcd_1234@!" # 设置密码
+#       - "ELASTIC_PASSWORD=PASSWORD" # 设置密码
 #     ulimits:
 #       memlock:
 #         soft: -1
