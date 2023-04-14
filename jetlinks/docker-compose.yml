@@ -1,0 +1,111 @@
+version: '2'
+services:
+  redis:
+    image: redis:5.0.4
+    container_name: jetlinks-redis
+    privileged: true
+    ports:
+      - "6379:6379"
+    volumes:
+      - "/www/path/redis/data:/data" #修改所有path
+    command: redis-server --appendonly yes --requirepass "password" #修改所有password
+    environment:
+      - TZ=Asia/Shanghai
+    networks:
+      elasticsearch2_esnet:
+        ipv4_address: 192.168.3.203
+  postgres:
+    image: postgres:11-alpine
+    container_name: jetlinks-postgres
+    privileged: true
+    volumes:
+      - "/www/path/postgres/data:/var/lib/postgresql/data"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: jetlinks
+      TZ: Asia/Shanghai
+    networks:
+      elasticsearch2_esnet:
+        ipv4_address: 192.168.3.202
+  ui:
+    image: registry.cn-shenzhen.aliyuncs.com/jetlinks/jetlinks-ui-pro:2.0.0
+    container_name: jetlinks-ui
+    privileged: true
+    ports:
+      - 9000:80
+    environment:
+      - "API_BASE_PATH=http://jetlinks:8848/" #API根路径
+    volumes:
+      - "/www/path/ui:/usr/share/nginx/html/upload"
+    links:
+      - jetlinks:jetlinks
+    networks:
+      elasticsearch2_esnet:
+        ipv4_address: 192.168.3.201
+  jetlinks:
+    image: registry.cn-shenzhen.aliyuncs.com/jetlinks/jetlinks-standalone:2.0.0-SNAPSHOT
+    container_name: jetlinks
+    privileged: true
+    ports:
+      - "8848:8848" # API端口
+      - "3883-3890:1883-1890" # 预留
+      - "8800-8810:8800-8810" # 预留
+      - "5060-5061:5060-5061" # 预留
+    volumes:
+      - "/www/path/jetlinks/data:/application/static/upload"  # 持久化上传的文件
+      - "/www/path/jetlinks/data:/application/data/files"
+      - "/www/path/jetlinks/data:/application/data/protocols"
+      - "./entrypoint.sh:/entrypoint.sh"
+    #entrypoint: /entrypoint.sh -d redis:5601,postgres:5432,elasticsearch:9200 'echo "start jetlinks service here"';
+    environment:
+      # - "SLEEP_SECOND=4"
+      - "JAVA_OPTS=-Duser.language=zh -XX:+UseG1GC"
+      - "TZ=Asia/Shanghai"
+      - "hsweb.file.upload.static-location=http://127.0.0.1:8848/upload"  #上传的静态文件访问根地址,为ui的地址.
+      - "spring.r2dbc.url=r2dbc:postgresql://postgres:5432/jetlinks" #数据库连接地址
+      - "spring.r2dbc.username=postgres"
+      - "spring.r2dbc.password=password"
+      - "spring.elasticsearch.uris=192.168.3.1:9200"
+      - "spring.elasticsearch.username=elastic"
+      - "spring.elasticsearch.password=password"
+      - "spring.reactor.debug-agent.enabled=false" #设置为false能提升性能
+      - "spring.redis.host=redis"
+      - "spring.redis.port=6379"
+      - "file.manager.storage-base-path=/application/data/files"
+      - "spring.redis.password=password"
+      - "logging.level.io.r2dbc=warn"
+      - "logging.level.org.springframework.data=warn"
+      - "logging.level.org.springframework=warn"
+      - "logging.level.org.jetlinks=warn"
+      - "logging.level.org.hswebframework=warn"
+      - "logging.level.org.springframework.data.r2dbc.connectionfactory=warn"
+      - "network.resources[0]=0.0.0.0:8800-8810/tcp"
+      - "network.resources[1]=0.0.0.0:1883-1890"
+      - "hsweb.cors.enable=true"
+      - "hsweb.cors.configs[0].path=/**"
+      - "hsweb.cors.configs[0].allowed-credentials=true"
+      - "hsweb.cors.configs[0].allowed-headers=*"
+      - "hsweb.cors.configs[0].allowed-origins=*"
+      - "hsweb.cors.configs[0].allowed-methods[0]=GET"
+      - "hsweb.cors.configs[0].allowed-methods[1]=POST"
+      - "hsweb.cors.configs[0].allowed-methods[2]=PUT"
+      - "hsweb.cors.configs[0].allowed-methods[3]=PATCH"
+      - "hsweb.cors.configs[0].allowed-methods[4]=DELETE"
+      - "hsweb.cors.configs[0].allowed-methods[5]=OPTIONS"
+      - "elasticsearch.index.settings.number-of-shards=2" #设置每个索引的分片数
+    links:
+      - redis:redis
+      - postgres:postgres
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      elasticsearch2_esnet:
+        ipv4_address: 192.168.3.200
+
+# 需要先启动es集群下配置的网络
+networks:
+  elasticsearch2_esnet:
+    external: true
